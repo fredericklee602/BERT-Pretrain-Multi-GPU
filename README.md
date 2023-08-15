@@ -46,7 +46,7 @@ model = torch.nn.parallel.DistributedDataParallel(model,
 
 修改`Config.py`文件中的`self.mode='test'`，再運行
 ```
-python main.py
+python -m torch.distributed.launch --nproc_per_node=1 --master_port='29301' --use_env main.py
 ```
 
 ### 多卡模式（訓練）
