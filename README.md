@@ -87,7 +87,7 @@ mask: [CLS] art education and first [MASK] work [SEP] [PAD] [PAD] [PAD] ...
 
 【transformers】[https://github.com/huggingface/transformers](https://github.com/huggingface/transformers)
 
-【datasets】[https://huggingface.co/docs/datasets/quicktour.html](https://huggingface.co/docs/datasets/quicktour.html)
+【datasets】[https://huggingface.co/datasets/yentinglin/zh_TW_c4](https://huggingface.co/datasets/yentinglin/zh_TW_c4)
 
 
 
