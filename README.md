@@ -1,4 +1,4 @@
-# Pretraining BERT Model
+# MLM pretrain BERT Model
 ## 專案說明
 
 * 使用台灣繁體中文資料集訓練https://huggingface.co/datasets/yentinglin/zh_TW_c4
@@ -22,6 +22,24 @@ $ git clone https://github.com/NVIDIA/apex
 $ cd apex
 $ python setup.py install
 ```
+## 原程式碼範例來源及DEBUG
+* 來源：https://github.com/wzzzd/pretrain_bert_with_maskLM/tree/main
+* 因為該開源碼我測試只能用單片GPU訓練，所以改動了部分程式。
+* command 執行改動。
+```
+python -m torch.distributed.launch --nproc_per_node=4 --master_port='29301' --use_env main.py
+```
+* 初始化GPU process設置改動，解決卡頓的問題。
+```
+torch.distributed.init_process_group(backend="nccl")
+```
+* 多process執行時將各個local_rank號碼寫入model，解決所有process只將model載入到GPU 0問題。
+```
+model = torch.nn.parallel.DistributedDataParallel(model,
+                                                  device_ids=[local_rank],
+                                                  output_device=local_rank)
+```
+
 ## Get Start
 
 ### 單卡模式(測試)
@@ -39,8 +57,7 @@ python main.py
 python -m torch.distributed.launch --nproc_per_node=4 --master_port='29301' --use_env main.py
 ```
 
-** 使用torch的`nn.parallel.DistributedDataParallel`模塊進行多卡訓練。
-
+* 使用torch的`nn.parallel.DistributedDataParallel`模塊進行多卡訓練。
 * <font color=#009393>`master_port`：master節點的port號，在不同的節點上master_addr和master_port的設置是一樣的，用來進行通信，port我設置'29301'。</font>
 * <font color=#009393>`nproc_per_node`：一個節點中顯卡的數量，我有4片GPU，所以設置4。 </font>
 
