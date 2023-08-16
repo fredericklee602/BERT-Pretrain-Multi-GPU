@@ -44,17 +44,24 @@ model = torch.nn.parallel.DistributedDataParallel(model,
 
 ### 單卡模式(測試)
 
-修改`Config.py`文件中的`self.mode='test'`，再運行
+修改`Config.py`文件中的`self.path_model_predict`。
+
+選擇想要的第n個epoch訓練的model再運行。
+* 如要第9個，則輸入`self.path_model_predict = os.path.join(self.path_model_save, 'epoch_9')`
 ```
-python -m torch.distributed.launch --nproc_per_node=1 --master_port='29301' --use_env main.py
+python main.py test
 ```
 
 ### 多卡模式（訓練）
 如果你足夠幸運，擁有了多張GPU卡，那麼恭喜你，你可以進入起飛模式。🚀🚀
 
-修改`Config.py`文件中的`self.mode='train'`，再運行
+修改`Config.py`文件中的`self.num_epochs, self.batch_size, self.sen_max_length`，再運行。
+
+* 如要設置訓練10個epoch，則輸入`self.num_epochs = 10`
+* 如要設置 BERT最長長度(<=512)，則輸入`self.sen_max_length = 512`
+* 如要設置 batch_size大小(依照可容納size設置)，設置16則輸入`self.batch_size = 16`
 ```
-python -m torch.distributed.launch --nproc_per_node=4 --master_port='29301' --use_env main.py
+python -m torch.distributed.launch --nproc_per_node=4 --master_port='29301' --use_env main.py train
 ```
 
 * 使用torch的`nn.parallel.DistributedDataParallel`模塊進行多卡訓練。
