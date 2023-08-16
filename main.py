@@ -44,7 +44,6 @@ if __name__ == '__main__':
         # 訓練
         trainer = Trainer(config)
         trainer.train(train_loader, valid_loader, local_rank)
-        torch.distributed.barrier()
         if local_rank==0:
             end_time = datetime.datetime.now()
             print("The train mode time spent:", end_time - start_time)
