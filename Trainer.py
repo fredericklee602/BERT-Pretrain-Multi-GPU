@@ -74,7 +74,7 @@ class Trainer(object):
             for i, batch in enumerate(train_loader):
                 batch = {k:v.to(device) for k,v in batch.items()}
                 outputs = model(**batch)
-                # 计算loss
+                # 計算loss
                 loss = outputs.loss
                 loss = loss.mean()                
                 loss.backward()
@@ -85,15 +85,16 @@ class Trainer(object):
 
                 if i % 500 == 0:
                     print('epoch:{0}  iter:{1}/{2}  loss:{3}'.format(epoch, i, len(train_loader), loss.item()))
-            # 模型保存
-            self.eval(valid_loader, model, epoch, device)
-            model_save = model.module if torch.cuda.device_count() > 1 else model
-            path = self.config.path_model_save + 'epoch_{}/'.format(epoch)
-            # DDP:
-            # 1. save模型的时候，和DP模式一样，有一个需要注意的點：保存的是model.module而不是model。
-            #    因為model其實是DDP model，參數是被`model=DDP(model)`包起來的。
-            # 2. 只需要在Process 0上保存一次就行了，避免多次保存重複的東西。
+            torch.distributed.barrier()
             if torch.distributed.get_rank() == 0:
+                # 模型保存
+                # DDP:
+                # 1. save模型的时候，和DP模式一样，有一个需要注意的點：保存的是model.module而不是model。
+                #    因為model其實是DDP model，參數是被`model=DDP(model)`包起來的。
+                # 2. 只需要在Process 0上保存一次就行了，避免多次保存重複的東西。
+                self.eval(valid_loader, model, epoch, device)
+                model_save = model.module if torch.cuda.device_count() > 1 else model
+                path = self.config.path_model_save + 'epoch_{}/'.format(epoch)
                 model_save.save_pretrained(path)
 
 
@@ -147,5 +148,6 @@ class Trainer(object):
 if __name__ == '__main__':
     
     config = Config()
+    train = Trainer()
     train(config)
     # load_lm()
