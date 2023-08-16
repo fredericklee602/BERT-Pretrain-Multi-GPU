@@ -26,18 +26,18 @@ class DataManager(object):
 
     def init_gpu_config(self):
         """
-        初始化GPU并行配置
+        初始化GPU並行配置
         """
         print('loading GPU config ...')
         if self.config.mode == 'train' and torch.cuda.device_count() > 1:
             torch.distributed.init_process_group(backend="nccl")
-            print('world_size', torch.distributed.get_world_size())
+            print('world_size:', torch.distributed.get_world_size())
             torch.distributed.barrier()  # Make sure only the first process in distributed training process the dataset, and the others will use the cache
     
     
     def get_dataset(self, mode='train', sampler=True):
         """
-        获取数据集
+        獲取數據集
         """
         # 讀取Tokenizer分詞模型
         tokenizer = AutoTokenizer.from_pretrained(self.config.initial_pretrain_tokenizer)     
@@ -59,7 +59,7 @@ class DataManager(object):
         數據處理
         """
         # 獲取數據
-        text = self.open_file(self.config.path_datasets + file_name)#[:2000]
+        text = self.open_file(self.config.path_datasets + file_name)
         dataset = pd.DataFrame({'src':text, 'labels':text})
         # dataframe to datasets
         raw_datasets = Dataset.from_pandas(dataset)
@@ -129,10 +129,10 @@ class DataManager(object):
             if x <= 0.80:
                 token = ids_mask
             if x> 0.80 and x <= 0.9:
-                # 随机生成整数
+                # 隨機生成整数
                 while True:
                     token = random.randint(0, len(vocab)-1)
-                    # 不再特殊字符index里，则跳出
+                    # 不再特殊字符index里，則跳出
                     if token not in ids_ex:
                         break
                 # token = random.randint(0, len(vocab)-1)
@@ -217,7 +217,7 @@ class DataManager(object):
         """讀文件"""
         text = []
         with open(path, 'r', encoding='utf8') as f:
-            for line in f.readlines():#[:1000]:
+            for line in f.readlines():
                 line = line.strip()
                 text.append(line)
         return text
