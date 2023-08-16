@@ -69,9 +69,7 @@ python -m torch.distributed.launch --nproc_per_node=4 --master_port='29301' --us
 * <font color=#009393>`nproc_per_node`：一個節點中顯卡的數量，我有4片GPU，所以設置4。 </font>
 
 ## training
-使用交叉熵（cross-entropy）作為損失函數，困惑度（perplexity）和Loss作為評價指標來進行訓練，訓練過程如下：
-<!-- ![](./picture/experiment.png) -->
-<img src=./picture/experiment.png width=70% />
+使用交叉熵（cross-entropy）作為損失函數，困惑度（perplexity）和Loss作為評價指標來進行訓練。
 
 ## test
 結果保存在`dataset/output/pred_data.csv`，分別包含三列：
