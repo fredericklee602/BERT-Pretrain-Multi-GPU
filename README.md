@@ -22,8 +22,7 @@ $ git clone https://github.com/NVIDIA/apex
 $ cd apex
 $ python setup.py install
 ```
-## 原程式碼範例來源及DEBUG
-* 來源：https://github.com/wzzzd/pretrain_bert_with_maskLM/tree/main
+## 程式碼範例來源DEBUG
 * 因為該開源碼我測試只能用單片GPU訓練，所以改動了部分程式。
 * command 執行改動。
 ```
