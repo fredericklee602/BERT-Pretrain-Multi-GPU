@@ -67,6 +67,23 @@ python -m torch.distributed.launch --nproc_per_node=4 --master_port='29301' --us
 * <font color=#009393>`master_port`：master節點的port號，在不同的節點上master_addr和master_port的設置是一樣的，用來進行通信，port我設置'29301'。</font>
 * <font color=#009393>`nproc_per_node`：一個節點中顯卡的數量，我有4片GPU，所以設置4。 </font>
 
+### 超大資料量讀取(訓練) 2023/08/17改動
+如果有資料量大到CPU RAM無法讀取的情況，請先將檔案分割寫入到路徑`./datasets/train_shard`
+
+修改`Config.py`文件中的`self.huge_data_file_data_length，每個檔案的資料有多少筆，則輸入多少。我分割成每個檔案160000筆，則輸入160000。
+
+* 在`Trainer.py`新增`def huge_data_train()`，可以看出在訓練過程會重新讀檔再轉成DataLoader形式。
+```
+# Trainer.py
+def huge_data_train(self,local_rank,world_size):
+    ...
+    for epoch in range(self.config.num_epochs):
+      for shard in file_list:
+        file_name = '/train_shard/'+shard
+        train_loader = dm.data_process(file_name, self.tokenizer)
+    ...
+```
+
 ## training
 使用交叉熵（cross-entropy）作為損失函數，困惑度（perplexity）和Loss作為評價指標來進行訓練。
 
