@@ -71,7 +71,7 @@ python -m torch.distributed.launch --nproc_per_node=4 --master_port='29301' --us
 如果有資料量大到CPU RAM無法讀取的情況，請先將檔案分割寫入到路徑`./datasets/train_shard`
 
 修改`Config.py`文件中的`self.huge_data_file_data_length，每個檔案的資料有多少筆，則輸入多少。我分割成每個檔案160000筆，則輸入160000。
-* 
+* 本人使用的資料量有百萬到千萬筆，使用`torch.distributed.launch`執行有個缺點是多process會多次讀取相同檔案，CPU RAM 128GB依然不夠。
 ```
 python -m torch.distributed.launch --nproc_per_node=4 --master_port='29301' --use_env main.py huge_train
 ```
