@@ -67,10 +67,14 @@ python -m torch.distributed.launch --nproc_per_node=4 --master_port='29301' --us
 * <font color=#009393>`master_port`：master節點的port號，在不同的節點上master_addr和master_port的設置是一樣的，用來進行通信，port我設置'29301'。</font>
 * <font color=#009393>`nproc_per_node`：一個節點中顯卡的數量，我有4片GPU，所以設置4。 </font>
 
-### 超大資料量讀取(訓練) 2023/08/17改動
+### 超大資料量讀取(訓練) [2023/08/17改動]
 如果有資料量大到CPU RAM無法讀取的情況，請先將檔案分割寫入到路徑`./datasets/train_shard`
 
 修改`Config.py`文件中的`self.huge_data_file_data_length，每個檔案的資料有多少筆，則輸入多少。我分割成每個檔案160000筆，則輸入160000。
+* 
+```
+python -m torch.distributed.launch --nproc_per_node=4 --master_port='29301' --use_env main.py huge_train
+```
 
 * 在`Trainer.py`新增`def huge_data_train()`，可以看出在訓練過程會重新讀檔再轉成DataLoader形式。
 ```
