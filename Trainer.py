@@ -138,11 +138,10 @@ class Trainer(object):
         perplexity = math.exp(losses_avg)
         print('eval {0}: loss:{1}  perplexity:{2}'.format(epoch, losses_avg.item(), perplexity))
         for i in range(10):
-            id_ = (i+5) * int(epoch)
             print('-'*30)
-            print('input: {}'.format(input[id_]))
-            print('label: {}'.format(label[id_]))
-            print('pred : {}'.format(pred[id_]))
+            print('input: {}'.format(input[i]))
+            print('label: {}'.format(label[i]))
+            print('pred : {}'.format(pred[i]))
         
         return losses_avg
     
