@@ -19,7 +19,7 @@ class Config(object):
         
         # 訓練配置
         self.whole_words_mask = True                                # 使用是否whole words masking機制
-        self.num_epochs = 1                                       # 迭代次數
+        self.num_epochs = 10                                       # 迭代次數
         self.batch_size = 16                                       # 每個批次的大小
         self.learning_rate = 3e-5                                   # 學習率
         self.num_warmup_steps = 0.1                                 # warm up步數
@@ -33,3 +33,6 @@ class Config(object):
         self.path_datasets = './datasets/'                          # 數據集
         self.path_log = './logs/'
         self.path_model_predict = os.path.join(self.path_model_save, 'epoch_9')
+        self.huge_data_file_data_length = 160000
+        # self.huge_data_file_data_length = 16000
+        self.data_path_prefix = "./datasets/train_shard/"

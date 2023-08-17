@@ -14,7 +14,7 @@ from transformers import AutoTokenizer, DataCollatorWithPadding, BertTokenizer, 
 
 from torch.utils.data import DataLoader, TensorDataset, RandomSampler
 from torch.utils.data.distributed import DistributedSampler
-
+import filelock
 
 
 class DataManager(object):
@@ -22,7 +22,6 @@ class DataManager(object):
     def __init__(self, config):
         self.config = config
         self.init_gpu_config()
-    
 
     def init_gpu_config(self):
         """
@@ -51,8 +50,6 @@ class DataManager(object):
         else:
             test_dataloader = self.data_process('test.txt', tokenizer, sampler=sampler)
             return test_dataloader
-        
-
 
     def data_process(self, file_name, tokenizer, sampler=True):
         """
@@ -61,11 +58,14 @@ class DataManager(object):
         # 獲取數據
         text = self.open_file(self.config.path_datasets + file_name)
         dataset = pd.DataFrame({'src':text, 'labels':text})
+        # with filelock.FileLock("dataset.lock"):
         # dataframe to datasets
         raw_datasets = Dataset.from_pandas(dataset)
+        del dataset
         # tokenizer.
         tokenized_datasets = raw_datasets.map(lambda x: self.tokenize_function(x, tokenizer), batched=True)        # 對於樣本中每條數據進行數據轉換
-        data_collator = DataCollatorWithPadding(tokenizer=tokenizer)                        # 對數據進行padding
+        del raw_datasets
+        # data_collator = DataCollatorWithPadding(tokenizer=tokenizer)                        # 對數據進行padding
         tokenized_datasets = tokenized_datasets.remove_columns(["src"])                     # 移除不需要的字段
         tokenized_datasets.set_format("torch")                                              # 格式轉換
         # 轉換成DataLoader類
@@ -75,7 +75,8 @@ class DataManager(object):
             sampler = None
         dataloader = DataLoader(tokenized_datasets, sampler=sampler, batch_size=self.config.batch_size)     #, collate_fn=data_collator , num_workers=2, drop_last=True
         return dataloader
-
+    def huge_data_shard_load(self, file_name, tokenizer):
+        return self.data_process(self, file_name, tokenizer, sampler=True)
 
     def tokenize_function(self, example, tokenizer):
         """

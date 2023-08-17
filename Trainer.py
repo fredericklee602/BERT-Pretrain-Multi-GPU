@@ -18,6 +18,7 @@ from model.BertForMaskedLM import BertForMaskedLM
 from Config import Config
 from transformers import DistilBertForMaskedLM
 from transformers import AutoTokenizer, DataCollatorWithPadding, BertTokenizer, DistilBertTokenizer
+from DataManager import DataManager
 
 
 class Trainer(object):
@@ -99,6 +100,7 @@ class Trainer(object):
 
 
     def eval(self, eval_dataloader, model, epoch, device):
+        print("=====  Validation Mode  =====")
         losses = []
         model.eval()
         
@@ -136,13 +138,93 @@ class Trainer(object):
         perplexity = math.exp(losses_avg)
         print('eval {0}: loss:{1}  perplexity:{2}'.format(epoch, losses_avg.item(), perplexity))
         for i in range(10):
+            id_ = (i+5) * int(epoch)
             print('-'*30)
-            print('input: {}'.format(input[i]))
-            print('label: {}'.format(label[i]))
-            print('pred : {}'.format(pred[i]))
+            print('input: {}'.format(input[id_]))
+            print('label: {}'.format(label[id_]))
+            print('pred : {}'.format(pred[id_]))
         
         return losses_avg
+    
+    def huge_data_train(self,local_rank,world_size):
+        # 數據處理
+        print('read data...')
+        dm = DataManager(self.config)
+        valid_loader = dm.get_dataset(mode='dev')
 
+        """
+            預訓練模型
+        """
+        print('training start')
+        # 初始化配置
+        os.environ["CUDA_VISIBLE_DEVICES"] = self.config.cuda_visible_devices
+        device = torch.device("cuda", local_rank)
+        print("cuda device:",device)
+
+        # 初始化模型和優化器
+        print('model loading')
+        model = BertForMaskedLM.from_pretrained(self.config.initial_pretrain_model)
+        # model = DistilBertForMaskedLM.from_pretrained(self.config.initial_pretrain_model)
+        print(">>>>>>>> Model Structure >>>>>>>>")
+        for name,parameters in model.named_parameters():
+            print(name,':',parameters.size())
+        print(">>>>>>>> Model Structure >>>>>>>>\n")
+        file_list = os.listdir(self.config.data_path_prefix)
+        optimizer = AdamW(model.parameters(), lr=self.config.learning_rate)
+
+        # 設定優化器配置
+        num_training_steps = int(self.config.num_epochs * self.config.huge_data_file_data_length * len(file_list) / (self.config.batch_size*world_size))
+        lr_scheduler = get_scheduler(
+            "linear",
+            optimizer=optimizer,
+            num_warmup_steps=self.config.num_warmup_steps,
+            num_training_steps=num_training_steps
+        )
+
+        # 分散式訓練
+        model.to(device)
+        if torch.cuda.device_count() > 1:
+            model = torch.nn.parallel.DistributedDataParallel(model,
+                                                            device_ids=[local_rank],
+                                                            output_device=local_rank)
+        print('start to train')
+        model.train()
+        progress_bar = tqdm(range(num_training_steps))
+        loss_best = math.inf
+        file_completed = 0
+        for epoch in range(self.config.num_epochs):
+            for shard in file_list:
+                file_name = '/train_shard/'+shard
+                train_loader = dm.data_process(file_name, self.tokenizer)
+                # DDP：設置sampler的epoch，
+                # DistributedSampler需要這個shuffle方式，
+                # 通過維持各個Process之間的相同隨機Seed使不同Process能獲得同樣的shuffle效果。
+                train_loader.sampler.set_epoch(epoch)
+                for i, batch in enumerate(train_loader):
+                    batch = {k:v.to(device) for k,v in batch.items()}
+                    outputs = model(**batch)
+                    # 計算loss
+                    loss = outputs.loss
+                    loss = loss.mean()                
+                    loss.backward()
+                    optimizer.step()
+                    lr_scheduler.step()
+                    optimizer.zero_grad()
+                    progress_bar.update(1)
+
+                    if (i+1) % 500 == 0:
+                        print('epoch:{0}  iter:{1}/{2}  loss:{3} file_completed:{4}'.format(epoch, i, len(train_loader), loss.item(), file_completed))
+                    if torch.distributed.get_rank() == 0 and (i+1)%2000==0:
+                        # 模型保存
+                        # DDP:
+                        # 1. save模型的时候，和DP模式一样，有一个需要注意的點：保存的是model.module而不是model。
+                        #    因為model其實是DDP model，參數是被`model=DDP(model)`包起來的。
+                        # 2. 只需要在Process 0上保存一次就行了，避免多次保存重複的東西。
+                        self.eval(valid_loader, model, epoch, device)
+                        model_save = model.module if torch.cuda.device_count() > 1 else model
+                        path = self.config.path_model_save + 'epoch_{}/'.format(epoch)
+                        model_save.save_pretrained(path)
+                file_completed = file_completed + 1
 
 
 if __name__ == '__main__':
