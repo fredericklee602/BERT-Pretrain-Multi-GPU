@@ -88,7 +88,7 @@ def huge_data_train(self,local_rank,world_size):
     ...
 ```
 * 於Training過程反覆讀取新檔案，再創建新的DataLoader會有個問題。
-* 優化器的學習率參數Learning Rate得重新精算。
+* 優化器的learning rate scheduler參數training steps得重新精算。
 * 所以得於`Config.py`文件中的 `self.huge_data_file_data_length` 輸入每個檔案的資料有多少筆。
 ```
 num_training_steps = int(self.config.num_epochs * self.config.huge_data_file_data_length * len(file_list) / (self.config.batch_size*world_size))
