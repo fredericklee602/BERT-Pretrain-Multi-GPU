@@ -76,7 +76,7 @@ python -m torch.distributed.launch --nproc_per_node=4 --master_port='29301' --us
 python -m torch.distributed.launch --nproc_per_node=4 --master_port='29301' --use_env main.py huge_train
 ```
 
-* 在`Trainer.py`新增`def huge_data_train()`，可以看出在訓練過程會重新讀檔再轉成DataLoader形式。
+* 在`Trainer.py`新增`def huge_data_train()`，可以看出在訓練過程會再取讀下個檔案再轉成新的DataLoader形式，之前是直接所有要訓練資料轉成DataLoader。
 ```
 # Trainer.py
 def huge_data_train(self,local_rank,world_size):
@@ -87,7 +87,18 @@ def huge_data_train(self,local_rank,world_size):
         train_loader = dm.data_process(file_name, self.tokenizer)
     ...
 ```
-
+* 於Training過程反覆讀取新檔案，再創建新的DataLoader會有個問題。
+* 優化器的學習率參數Learning Rate得重新精算。
+* 所以得於`Config.py`文件中的`self.huge_data_file_data_length輸入每個檔案的資料有多少筆。
+```
+num_training_steps = int(self.config.num_epochs * self.config.huge_data_file_data_length * len(file_list) / (self.config.batch_size*world_size))
+lr_scheduler = get_scheduler(
+    "linear",
+    optimizer=optimizer,
+    num_warmup_steps=self.config.num_warmup_steps,
+    num_training_steps=num_training_steps
+)
+```
 ## training
 使用交叉熵（cross-entropy）作為損失函數，困惑度（perplexity）和Loss作為評價指標來進行訓練。
 
