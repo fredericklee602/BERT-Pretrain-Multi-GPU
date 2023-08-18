@@ -72,8 +72,10 @@ python -m torch.distributed.launch --nproc_per_node=4 --master_port='29301' --us
 
 修改`Config.py`文件中的`self.huge_data_file_data_length`，每個檔案的資料有多少筆，則輸入多少。我分割成每個檔案160000筆，則輸入160000。
 * 本人使用的資料量有百萬以上，https://huggingface.co/datasets/yentinglin/zh_TW_c4 的資料總共有500萬筆數、5 Billoin的tokens。
-* 使用`torch.distributed.launch`執行有個優點及缺點，多process可以快速將DistributedSampler(tokenized_datasets)完成，缺點是會多次讀取相同檔案再整理進DistributedSampler()。
-* 假設有4片GPU，`world_size=4`，會導致相同資料檔案會被重複讀取四次。本人CPU RAM 有128GB依然不夠。
+* 使用`torch.distributed.launch`執行有個優點及缺點。
+* 優點：多process可以快速將DistributedSampler(tokenized_datasets)完成
+* 缺點：會多次讀取相同檔案再整理進DistributedSampler()。
+* 假設有4片GPU，`world_size=4`，會導致相同資料檔案同時被重複讀取四次。本人CPU RAM 有128GB依然不夠。
 ```
 python -m torch.distributed.launch --nproc_per_node=4 --master_port='29301' --use_env main.py huge_train
 ```
