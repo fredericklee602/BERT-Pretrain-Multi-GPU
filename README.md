@@ -46,7 +46,7 @@ model = torch.nn.parallel.DistributedDataParallel(model,
 修改`Config.py`文件中的`self.path_model_predict`。
 
 選擇想要的第n個epoch訓練的model再運行。
-* 如要第9個，則輸入`self.path_model_predict = os.path.join(self.path_model_save, 'epoch_9')`
+* 如要訓練到第9個epoch的Model參數，則輸入`self.path_model_predict = os.path.join(self.path_model_save, 'epoch_9')`
 ```
 python main.py test
 ```
@@ -54,7 +54,7 @@ python main.py test
 ### 多卡模式（訓練）
 如果你足夠幸運，擁有了多張GPU卡，那麼恭喜你，你可以進入起飛模式。🚀🚀
 
-修改`Config.py`文件中的`self.num_epochs, self.batch_size, self.sen_max_length`，再運行。
+修改`Config.py`文件中的 `self.num_epochs, self.batch_size, self.sen_max_length` ，再運行。
 
 * 如要設置訓練10個epoch，則輸入`self.num_epochs = 10`
 * 如要設置 BERT最長長度(<=512)，則輸入`self.sen_max_length = 512`
@@ -70,13 +70,15 @@ python -m torch.distributed.launch --nproc_per_node=4 --master_port='29301' --us
 ### 超大資料量讀取(訓練) [2023/08/17改動]
 如果有資料量大到CPU RAM無法讀取的情況，請先將檔案分割寫入到路徑`./datasets/train_shard`
 
-修改`Config.py`文件中的`self.huge_data_file_data_length，每個檔案的資料有多少筆，則輸入多少。我分割成每個檔案160000筆，則輸入160000。
-* 本人使用的資料量有百萬到千萬筆，使用`torch.distributed.launch`執行有個缺點是多process會多次讀取相同檔案，CPU RAM 128GB依然不夠。
+修改`Config.py`文件中的`self.huge_data_file_data_length`，每個檔案的資料有多少筆，則輸入多少。我分割成每個檔案160000筆，則輸入160000。
+* 本人使用的資料量有百萬以上，https://huggingface.co/datasets/yentinglin/zh_TW_c4 的資料總共有500萬筆數、5 Billoin的tokens。
+* 使用`torch.distributed.launch`執行有個優點及缺點，多process可以快速將DistributedSampler(tokenized_datasets)完成，缺點是會多次讀取相同檔案再整理進DistributedSampler()。
+* 假設有4片GPU，`world_size=4`，會導致相同資料檔案會被重複讀取四次。本人CPU RAM 有128GB依然不夠。
 ```
 python -m torch.distributed.launch --nproc_per_node=4 --master_port='29301' --use_env main.py huge_train
 ```
 
-* 在`Trainer.py`新增`def huge_data_train()`，可以看出在訓練過程會再取讀下個檔案再轉成新的DataLoader形式，之前是直接所有要訓練資料轉成DataLoader。
+* 在`Trainer.py`新增`def huge_data_train()`，可以看出在訓練過程會讀取下個檔案再轉成新的DataLoader形式，之前是直接所有要訓練資料轉成DataLoader。
 ```
 # Trainer.py
 def huge_data_train(self,local_rank,world_size):
