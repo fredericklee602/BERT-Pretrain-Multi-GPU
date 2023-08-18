@@ -2,8 +2,8 @@
 ## 專案說明
 
 * 使用台灣繁體中文資料集訓練https://huggingface.co/datasets/yentinglin/zh_TW_c4
-* 使用多GPU並行訓練方法。
-* 使用Mask Language Model 預訓練BERT模型。
+* 多片GPU並行訓練。
+* Mask Language Model 預訓練BERT模型。
 
 ## Datasets
 * `datasets/train.txt`：訓練用文本，可於write_data.ipynb做生成。
