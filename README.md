@@ -56,9 +56,9 @@ python main.py test
 
 修改`Config.py`文件中的 `self.num_epochs, self.batch_size, self.sen_max_length` ，再運行。
 
-* 如要設置訓練10個epoch，則輸入`self.num_epochs = 10`
-* 如要設置 BERT最長長度(<=512)，則輸入`self.sen_max_length = 512`
-* 如要設置 batch_size大小(依照可容納size設置)，設置16則輸入`self.batch_size = 16`
+* 設置訓練10個epoch，則輸入`self.num_epochs = 10`
+* 設置 BERT長度(<=512)，如設置最長則輸入`self.sen_max_length = 512`
+* 設置 batch_size大小(依照可容納size設置)，如設置16則輸入`self.batch_size = 16`
 ```
 python -m torch.distributed.launch --nproc_per_node=4 --master_port='29301' --use_env main.py train
 ```
