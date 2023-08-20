@@ -26,7 +26,7 @@ $ cd apex
 $ python setup.py install
 ```
 ## 程式碼範例來源DEBUG
-### 因為該開源碼我測試只能用單片GPU訓練，所以改動了部分程式。
+### 因為該開源碼我測試只能用單片GPU訓練，所以Debug改動了部分程式。
 * command 執行改動。
 ```
 python -m torch.distributed.launch --nproc_per_node=4 --master_port='29301' --use_env main.py
