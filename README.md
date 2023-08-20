@@ -14,7 +14,7 @@
 * Ubuntu20.04
 * CUDA Version: 11.7
 * GeForce RTX 3090 * 4
-* python的版本為: 3.10.11
+* python version: 3.10.11
 ```
 torch==1.13.1
 transformers==4.29.2
