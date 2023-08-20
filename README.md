@@ -11,31 +11,31 @@
 * `datasets/test.txt`：測試用資料。
 
 ## Environment
-* Ubuntu20.04
-* CUDA Version: 11.7
-* GeForce RTX 3090 * 4
+Ubuntu20.04
+CUDA Version: 11.7
+GeForce RTX 3090 * 4
 * python version: 3.10.11
 ```
 torch==1.13.1
 transformers==4.29.2
 ```
-* 會需要用到NVIDIA/apex，得將apex git clone再安裝才行。
+會需要用到NVIDIA/apex，得將apex git clone再安裝才行。
 ```
 $ git clone https://github.com/NVIDIA/apex
 $ cd apex
 $ python setup.py install
 ```
 ## 程式碼範例來源DEBUG
-* 因為該開源碼我測試只能用單片GPU訓練，所以改動了部分程式。
+因為該開源碼我測試只能用單片GPU訓練，所以改動了部分程式。
 * command 執行改動。
 ```
 python -m torch.distributed.launch --nproc_per_node=4 --master_port='29301' --use_env main.py
 ```
-* 初始化GPU process設置改動，解決卡頓的問題。
+初始化GPU process設置改動，解決卡頓的問題。
 ```
 torch.distributed.init_process_group(backend="nccl")
 ```
-* 多process執行時將各個local_rank號碼寫入model，解決所有process只將model載入到GPU 0問題。
+多process執行時將各個local_rank號碼寫入model，解決所有process只將model載入到GPU 0問題。
 ```
 model = torch.nn.parallel.DistributedDataParallel(model,
                                                   device_ids=[local_rank],
