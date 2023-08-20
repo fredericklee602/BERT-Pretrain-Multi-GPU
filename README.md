@@ -12,14 +12,14 @@
 
 ## Environment
 Ubuntu20.04
-CUDA Version: 11.7
-GeForce RTX 3090 * 4
+* CUDA Version: 11.7
+* GeForce RTX 3090 * 4
 * python version: 3.10.11
 ```
 torch==1.13.1
 transformers==4.29.2
 ```
-會需要用到NVIDIA/apex，得將apex git clone再安裝才行。
+* 會需要用到NVIDIA/apex，得將apex git clone再安裝才行。
 ```
 $ git clone https://github.com/NVIDIA/apex
 $ cd apex
