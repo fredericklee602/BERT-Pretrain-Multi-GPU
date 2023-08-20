@@ -11,6 +11,9 @@
 * `datasets/test.txt`：測試用資料。
 
 ## Environment
+* Ubuntu20.04
+* CUDA Version: 11.7
+* GeForce RTX 3090 * 4
 * python的版本為: 3.10.11
 ```
 torch==1.13.1
