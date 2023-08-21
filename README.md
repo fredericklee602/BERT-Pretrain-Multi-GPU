@@ -26,7 +26,7 @@ $ cd apex
 $ python setup.py install
 ```
 ## 程式碼範例來源DEBUG
-### 原開源碼來源，只能用單片GPU訓練，且初始設置分散式GPU時會卡頓。
+### 原開源碼來源，只能用單片GPU訓練，且初始設置分散式程序時會卡頓。
 * command 執行改動。
 ```
 python -m torch.distributed.launch --nproc_per_node=4 --master_port='29301' --use_env main.py
