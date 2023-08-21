@@ -26,7 +26,7 @@ $ cd apex
 $ python setup.py install
 ```
 ## 程式碼範例來源DEBUG
-### 原開源碼來源，我測試world_size為複數個GPU，但最後也只能用單片GPU訓練，且有卡頓的情形，所以Debug改動了部分程式。
+##### 原開源碼來源，我測試world_size為複數個GPU，但最後也只能用單片GPU訓練，且有卡頓的情形，所以Debug改動了部分程式。
 * command 執行改動。
 ```
 python -m torch.distributed.launch --nproc_per_node=4 --master_port='29301' --use_env main.py
