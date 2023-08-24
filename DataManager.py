@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 import torch
 from tqdm.auto import tqdm
-from datasets import Dataset, load_dataset, load_metric
+from datasets import Dataset, load_dataset, load_metric, load_from_disk
 from torch.utils.data import DataLoader
 from transformers import AutoTokenizer, DataCollatorWithPadding, BertTokenizer, DistilBertTokenizer
 
@@ -48,7 +48,9 @@ class DataManager(object):
             eval_dataloader = self.data_process('dev.txt', tokenizer)
             return eval_dataloader
         else:
-            test_dataloader = self.data_process('test.txt', tokenizer, sampler=sampler)
+            # test_dataloader = self.data_process('test.txt', tokenizer, sampler=sampler)
+            # self.data_process_save_test('test.txt', tokenizer)
+            test_dataloader = self.data_process_load_test(sampler=sampler)
             return test_dataloader
 
     def data_process(self, file_name, tokenizer, sampler=True):
@@ -58,7 +60,6 @@ class DataManager(object):
         # 獲取數據
         text = self.open_file(self.config.path_datasets + file_name)
         dataset = pd.DataFrame({'src':text, 'labels':text})
-        # with filelock.FileLock("dataset.lock"):
         # dataframe to datasets
         raw_datasets = Dataset.from_pandas(dataset)
         del dataset
@@ -66,6 +67,33 @@ class DataManager(object):
         tokenized_datasets = raw_datasets.map(lambda x: self.tokenize_function(x, tokenizer), batched=True)        # 對於樣本中每條數據進行數據轉換
         del raw_datasets
         # data_collator = DataCollatorWithPadding(tokenizer=tokenizer)                        # 對數據進行padding
+        tokenized_datasets = tokenized_datasets.remove_columns(["src"])                     # 移除不需要的字段
+        tokenized_datasets.set_format("torch")                                              # 格式轉換
+        # 轉換成DataLoader類
+        if sampler:
+            sampler = RandomSampler(tokenized_datasets) if not torch.cuda.device_count() > 1 else DistributedSampler(tokenized_datasets)
+        else:
+            sampler = None
+        dataloader = DataLoader(tokenized_datasets, sampler=sampler, batch_size=self.config.batch_size)     #, collate_fn=data_collator , num_workers=2, drop_last=True
+        return dataloader
+    def data_process_save_test(self, file_name, tokenizer):
+        """
+        數據處理
+        """
+        # 獲取數據
+        text = self.open_file(self.config.path_datasets + file_name)
+        dataset = pd.DataFrame({'src':text, 'labels':text})
+        # dataframe to datasets
+        raw_datasets = Dataset.from_pandas(dataset)
+        del dataset
+        # tokenizer.
+        tokenized_datasets = raw_datasets.map(lambda x: self.tokenize_function(x, tokenizer), batched=True)        # 對於樣本中每條數據進行數據轉換
+        tokenized_datasets.save_to_disk('bert_test_dataset')
+    def data_process_load_test(self, sampler=True):
+        """
+        數據處理
+        """
+        tokenized_datasets = load_from_disk('bert_test_dataset')
         tokenized_datasets = tokenized_datasets.remove_columns(["src"])                     # 移除不需要的字段
         tokenized_datasets.set_format("torch")                                              # 格式轉換
         # 轉換成DataLoader類
