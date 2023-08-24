@@ -46,6 +46,8 @@ class Predictor(object):
         """
         print('loading model...%s' %self.config.path_model_predict)
         self.model = BertForMaskedLM.from_pretrained(self.config.path_model_predict)
+        # self.model = BertForMaskedLM.from_pretrained('bert-base-chinese')
+        # self.model = BertForMaskedLM.from_pretrained('ckiplab/bert-base-chinese')
         # 將模型加載到CPU/GPU
         self.model.to(self.device)
         self.model.eval()
@@ -61,6 +63,9 @@ class Predictor(object):
         label = []
         pred = []
         input = []
+        acc_label = []
+        acc_pred = []
+        acc_input = []
         print("Batch Length:{0}".format(len(test_loader)))
         for i, batch in enumerate(test_loader):
             # 推斷
@@ -80,23 +85,39 @@ class Predictor(object):
                 line_l_split = [ x for x in line_l if x not in [0]]
                 line_p = tmp_pred[j]
                 line_p_split = line_p[:len(line_l_split)]
-                tmp_s = self.tokenizer.convert_tokens_to_string(self.tokenizer.convert_ids_to_tokens(line_s))
+                token_s = self.tokenizer.convert_ids_to_tokens(line_s)
+                tmp_s = self.tokenizer.convert_tokens_to_string(token_s)
                 tmp_s = tmp_s.replace('[PAD] ','')
-                tmp_lab = self.tokenizer.convert_tokens_to_string(self.tokenizer.convert_ids_to_tokens(line_l_split))
-                tmp_p = self.tokenizer.convert_tokens_to_string(self.tokenizer.convert_ids_to_tokens(line_p_split))
+                token_lab = self.tokenizer.convert_ids_to_tokens(line_l_split)
+                tmp_lab = self.tokenizer.convert_tokens_to_string(token_lab)
+                token_p = self.tokenizer.convert_ids_to_tokens(line_p_split)
+                tmp_p = self.tokenizer.convert_tokens_to_string(token_p)
                 input.append(tmp_s)
                 label.append(tmp_lab)
                 pred.append(tmp_p)
+                acc_label.append(token_lab)
+                acc_pred.append(token_p)
+                acc_input.append(token_s)
             
         # 計算指標
         total = 0
         count = 0
-        for k,(s,t) in enumerate(zip(label, pred)):
-            if '[MASK]' in input[k]:
-                total += 1
-                if s==t:
-                    count += 1
+        c=0
+        print("Present Label and Prediction vocabulary correspondence when the vocabulary was masked.")
+        for k,(l,p,s) in enumerate(zip(acc_label, acc_pred, acc_input)):
+            for i in range(len(s)):
+                c=c+1
+                if s[i]=="[MASK]":
+                    if c<50:
+                        print("l:",l[i])
+                        print("p:",p[i])
+                    total += 1
+                    if l[i]==p[i]:
+                        count += 1
         acc = count/max(1, total)
+        print('\nTotal Accuracy: )
+        print('\nTask: count=',count)
+        print('\nTask: total=',total)
         print('\nTask: acc=',acc)
         
         # 保存
@@ -107,7 +128,7 @@ class Predictor(object):
         if not os.path.exists(path):
             os.mkdir(path)
         path_output = os.path.join(path, 'pred_data.csv')
-        data.to_csv(path_output, sep='\t', index=False)
+        data.to_csv(path_output, index=False)
         print('Task 1: predict result save: {}'.format(path_output))
 
         
