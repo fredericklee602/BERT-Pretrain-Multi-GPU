@@ -47,6 +47,10 @@ class Trainer(object):
         print(">>>>>>>> Model Structure >>>>>>>>\n")
         
         optimizer = AdamW(model.parameters(), lr=self.config.learning_rate)
+        if "epoch_" in self.config.train_start:
+            opt_path = self.config.path_model_save + self.config.train_start
+            opt_path = opt_path + "optimizer.pt"
+            optimizer.load_state_dict(torch.load(opt_path))
 
         # 設定優化器配置
         num_training_steps = self.config.num_epochs * len(train_loader)
@@ -67,7 +71,10 @@ class Trainer(object):
         model.train()
         progress_bar = tqdm(range(num_training_steps))
         loss_best = math.inf
-        for epoch in range(self.config.num_epochs):
+        epoch_start = 0
+        if "epoch_" in self.config.train_start:
+            epoch_start = int(self.config.train_start.split("epoch_")[1])
+        for epoch in range(epoch_start,epoch_start + self.config.num_epochs):
             # DDP：設置sampler的epoch，
             # DistributedSampler需要這個shuffle方式，
             # 通過維持各個Process之間的相同隨機Seed使不同Process能獲得同樣的shuffle效果。
@@ -97,6 +104,8 @@ class Trainer(object):
                 model_save = model.module if torch.cuda.device_count() > 1 else model
                 path = self.config.path_model_save + 'epoch_{}/'.format(epoch)
                 model_save.save_pretrained(path)
+                path = path + "optimizer.pt"
+                torch.save(optimizer.state_dict(), path)
 
 
     def eval(self, eval_dataloader, model, epoch, device):
@@ -170,6 +179,10 @@ class Trainer(object):
         print(">>>>>>>> Model Structure >>>>>>>>\n")
         file_list = os.listdir(self.config.data_path_prefix)
         optimizer = AdamW(model.parameters(), lr=self.config.learning_rate)
+        if "epoch_" in self.config.train_start:
+            opt_path = self.config.path_model_save + self.config.train_start
+            opt_path = opt_path + "optimizer.pt"
+            optimizer.load_state_dict(torch.load(opt_path))
 
         # 設定優化器配置
         num_training_steps = int(self.config.num_epochs * self.config.huge_data_file_data_length * len(file_list) / (self.config.batch_size*world_size))
@@ -190,8 +203,11 @@ class Trainer(object):
         model.train()
         progress_bar = tqdm(range(num_training_steps))
         loss_best = math.inf
-        file_completed = 0
-        for epoch in range(self.config.num_epochs):
+        epoch_start = 0
+        if "epoch_" in self.config.train_start:
+            epoch_start = int(self.config.train_start.split("epoch_")[1])
+        for epoch in range(epoch_start,epoch_start + self.config.num_epochs):
+            file_completed = 0
             for shard in file_list:
                 file_name = '/train_shard/'+shard
                 train_loader = dm.data_process(file_name, self.tokenizer)
@@ -223,6 +239,8 @@ class Trainer(object):
                         model_save = model.module if torch.cuda.device_count() > 1 else model
                         path = self.config.path_model_save + 'epoch_{}/'.format(epoch)
                         model_save.save_pretrained(path)
+                        path = path + "optimizer.pt"
+                        torch.save(optimizer.state_dict(), path)
                 file_completed = file_completed + 1
 
 

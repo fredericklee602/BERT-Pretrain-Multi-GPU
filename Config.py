@@ -27,7 +27,8 @@ class Config(object):
         self.padding = True                                         # 是否對輸入進行padding
 
         # 模型及路徑配置
-        self.initial_pretrain_model = 'bert-base-chinese'           # 加載的預訓練分詞器checkpoint，默認為英文。若要選擇中文，替换成 bert-base-chinese
+        self.initial_pretrain_model = './checkpoint/bert/epoch_9'           # 加載的預訓練分詞器checkpoint，默認為英文。若要選擇中文，替换成 bert-base-chinese
+        # self.initial_pretrain_model = 'bert-base-chinese'           # 加載的預訓練分詞器checkpoint，默認為英文。若要選擇中文，替换成 bert-base-chinese
         self.initial_pretrain_tokenizer = 'bert-base-chinese'       # 加載的預訓練模型checkpoint，默認為英文。若要選擇中文，替换成 bert-base-chinese
         self.path_model_save = './checkpoint/bert/'                      # 模型保存路徑
         self.path_datasets = './datasets/'                          # 數據集
@@ -36,3 +37,4 @@ class Config(object):
         self.huge_data_file_data_length = 160000
         # self.huge_data_file_data_length = 16000
         self.data_path_prefix = "./datasets/train_shard/"
+        self.train_start = 0                                    #訓練想接續的話填寫想開始的epoch_{number} ex:'epoch_9'
