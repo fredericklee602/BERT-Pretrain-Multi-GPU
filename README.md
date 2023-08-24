@@ -4,6 +4,17 @@
 * 使用台灣繁體中文資料集訓練https://huggingface.co/datasets/yentinglin/zh_TW_c4
 * 多片GPU並行訓練。
 * Mask Language Model 預訓練BERT模型。
+## Model Performance
+
+* 500萬筆傳統中文資料、16 batch size*4 3090 = 64 batch size、10個epoch。
+* 迭代次數總計80萬次，4天11小時37分20秒。
+* 依照MLM Task比較中文BERT模型
+
+| Dataset\BERT Pretrain  | bert-based-chinese | ckiplab | GufoLab |
+| ------------- |:-------------:|:-------------:|:-------------:|
+| 5000 Tradition Chinese Dataset	|0.7183|	0.6989|	**0.8081**|
+| 10000 Sol-Idea Dataset	| 0.7874|	0.7913|	**0.8025**|
+| ALL DataSet	| 0.7694| 	0.7678| 	**0.8038**|
 
 ## Datasets
 * `datasets/train.txt`：訓練用文本，可於write_data.ipynb做生成。
@@ -35,7 +46,7 @@ python -m torch.distributed.launch --nproc_per_node=4 --master_port='29301' --us
 ```
 torch.distributed.init_process_group(backend="nccl")
 ```
-* 多process執行時將各個local_rank號碼寫入model，解決所有process只將model載入到GPU 0問題。
+* 多process執行時將各個local_rank號碼寫入model，解決所有process只會載入model到GPU 0問題。
 ```
 model = torch.nn.parallel.DistributedDataParallel(model,
                                                   device_ids=[local_rank],
@@ -106,6 +117,10 @@ lr_scheduler = get_scheduler(
     num_training_steps=num_training_steps
 )
 ```
+### 新增可訓練延續機制 [2023/08/24]
+加入Optimizer Save的機制，於訓練開始時可以讀取Optimizer數值。
+`Config.py`做訓練起始設置，輸入`self.train_start = epoch_9`，則從`epoch_9`開始訓練。
+
 ## training
 使用交叉熵（cross-entropy）作為損失函數，困惑度（perplexity）和Loss作為評價指標來進行訓練。
 
