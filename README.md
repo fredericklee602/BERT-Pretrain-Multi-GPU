@@ -85,7 +85,7 @@ python -m torch.distributed.launch --nproc_per_node=4 --master_port='29301' --us
 如果有資料量大到CPU RAM無法讀取的情況，請先將檔案分割寫入到路徑`./datasets/train_shard`
 
 修改`Config.py`文件中的`self.huge_data_file_data_length`，每個檔案的資料有多少筆，則輸入多少。我分割成每個檔案160000筆，則輸入160000。
-* 本人使用的資料量有百萬以上，https://huggingface.co/datasets/yentinglin/zh_TW_c4 的資料總共有500萬筆數、5 Billoin的tokens。
+* 本人使用的資料量有百萬以上，https://huggingface.co/datasets/botp/yentinglin-zh_TW_c4 的資料總共有500萬筆數、5 Billoin的tokens。
 * 使用`torch.distributed.launch`執行有個優點及缺點。
 - 優點：多process可以快速將DistributedSampler(tokenized_datasets)完成
 - 缺點：會多次讀取相同檔案再整理進DistributedSampler()。
