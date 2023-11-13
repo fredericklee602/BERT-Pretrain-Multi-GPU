@@ -1,7 +1,7 @@
 # MLM pretrain BERT Model
 ## 專案說明
 
-* 使用台灣繁體中文資料集訓練https://huggingface.co/datasets/yentinglin/zh_TW_c4
+* 使用台灣繁體中文資料集訓練https://huggingface.co/datasets/botp/yentinglin-zh_TW_c4
 * 多片GPU並行訓練。
 * Mask Language Model 預訓練BERT模型。
 ## Model Performance
