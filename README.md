@@ -4,6 +4,7 @@
 * 使用台灣繁體中文資料集訓練https://huggingface.co/datasets/botp/yentinglin-zh_TW_c4
 * 多片GPU並行訓練。
 * Mask Language Model 預訓練BERT模型。
+* Continue Pretrain Model：https://huggingface.co/Azion/bert-based-chinese
 ## Model Performance
 
 * 500萬筆傳統中文資料、16 batch size*4 3090 = 64 batch size、10個epoch。
