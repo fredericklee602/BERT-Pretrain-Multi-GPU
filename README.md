@@ -44,6 +44,7 @@ $ python setup.py install
 python -m torch.distributed.launch --nproc_per_node=4 --master_port='29301' --use_env main.py
 ```
 * 初始化GPU process設置改動，解決卡頓的問題。
+* NCCL，全稱 NVIDIA Collective Communications Library，是由 NVIDIA 提供的一個庫，專為在 GPU 集群上進行高效的集合通信而設計。
 ```
 torch.distributed.init_process_group(backend="nccl")
 ```
